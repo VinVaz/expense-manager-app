@@ -1,21 +1,17 @@
+import React from 'react';
+import { Switch, Route, Redirect, useParams, useHistory} from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { carregaTodasAsDespesas, IExpense } from '../helpers/backend';
+import { getNumberFormat } from '../helpers/currencyFormat';
 
-import {
-  apiGetAllExpenses,
-} from '../api/apiService';
-
-import {
-  DISPLAY_OPTIONS,
-} from '../constants/constants';
-
-import Details from '../components/Details';
 import FilterSelector from '../components/FilterSelector';
+import Main from '../components/Main';
+
 import TotalSum from '../components/TotalSum';
 
 import { Container, Typography, Box, AppBar, Toolbar } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
-import Summary from '../components/Summary';
-
+import { getMonthlyExpensesPerCategory, getMonthlyExpenses, getTotalExpenses } from '../helpers/expensesFormat'
 
 const useStyles = makeStyles({
   panel: {
@@ -38,56 +34,67 @@ const useStyles = makeStyles({
     alignItems: 'center',
     padding: '1rem',
     backgroundColor: '#fafafa',
-  }
-})
-
+  },
+});
 
 function App() {
-  const [expenses, setExpenses] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('2020-01');
-  const [displayOption, setDisplayOption] = useState(DISPLAY_OPTIONS.SUMMARY);
+  const [expenses, setExpenses] = useState<IExpense[]>([]);
+  const styleClass = useStyles();
+  const history = useHistory();
 
-  const styleClass = useStyles()
-
-  useEffect(() => {
-    async function getExpenses() {
-      const apiExpenses = await apiGetAllExpenses();
-      setExpenses(apiExpenses);
-
-    }
-    getExpenses()
-  }, []);
+  function onChangeYearMonth(yearMonth: string) {
+    history.push(`/despesas/${yearMonth}`)
+  }
   
+  const {anoMes} = useParams<{anoMes:string}>();
+  const yearMonth = anoMes;
 
-const filteredExpenses = !selectedDate ?
-  expenses :
-  expenses.filter((expense) => expense['mes'] ? String(expense['mes']) === selectedDate : 'false'
+  const filteredExpenses:IExpense[] = !anoMes
+  ? expenses
+  : expenses.filter((expense:IExpense) =>
+      expense['mes'] ? expense['mes'] === anoMes : 'false'
     );
 
-  let sum = 0;
-  filteredExpenses.forEach(expense => {
-    sum += expense["valor"];
-  })
 
-  const getNumberFormat = (input: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(input);
-  }
+  useEffect(()=>{
+    carregaTodasAsDespesas().then((res)=>{
+      console.log(res)
+      setExpenses(res)
+    })
+  }, [])
 
   return (
-    <Container maxWidth="lg">
-      <AppBar position="static">
-        <Toolbar className={styleClass.header}>
-          <Typography variant="h3" component="div">Expense Manager</Typography>
-        </Toolbar>
-      </AppBar>
-      <Box className={styleClass.panel}>
-        <FilterSelector setSelectedDate={setSelectedDate} selectedDate={selectedDate}/>
-        <TotalSum>{getNumberFormat(sum)}</TotalSum>
-      </Box>
-      { displayOption === DISPLAY_OPTIONS.SUMMARY ?
-       <Summary>{filteredExpenses}</Summary> : 
-       <Details>{filteredExpenses}</Details>}
-    </Container>
+    <React.Fragment>
+      <Switch>
+        <Route path="/despesas/:anoMes">
+          <Container maxWidth="lg">
+            <AppBar position="static">
+              <Toolbar className={styleClass.header}>
+                <Typography variant="h3" component="div">
+                  Expense Manager
+                </Typography>
+              </Toolbar>
+            </AppBar>
+            <Box>
+              <TotalSum total={getNumberFormat(getTotalExpenses(filteredExpenses))} />
+            </Box>
+            <Box className={styleClass.panel}>
+              <Box flex="1">
+                <FilterSelector
+                    yearMonth={yearMonth}
+                    onChangeYearMonth={onChangeYearMonth}
+                  />
+              </Box>
+              <TotalSum total={getNumberFormat(getMonthlyExpenses(filteredExpenses))} />
+            </Box>
+            <Main
+              filteredExpenses={filteredExpenses}
+            />
+          </Container>
+        </Route>
+      </Switch>
+      <Redirect to="/despesas/2021-06" />
+    </React.Fragment>
   );
 }
 

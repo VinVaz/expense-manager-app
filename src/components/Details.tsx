@@ -7,11 +7,13 @@ import {
   TableRow,
   Paper,
 } from '@material-ui/core';
+import { IExpense } from '../helpers/backend';
 
-export default function Details({ children: expenses }) {
+
+export default function Details(props: { expenses: IExpense[] }) {
   return (
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+      <Table size="small" aria-label="a dense table">
         <TableHead>
           <TableRow>
             <TableCell>Despesa</TableCell>
@@ -22,10 +24,10 @@ export default function Details({ children: expenses }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {expenses.map((expense, index) => (
+          {props.expenses.map((expense) => (
             <TableRow
-              key={index}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+              key={expense.id}
+              
             >
               <TableCell component="th" scope="row">
                 {expense.descricao}

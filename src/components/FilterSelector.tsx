@@ -1,33 +1,32 @@
-import { useEffect, useState } from 'react';
 import {
-  helperGetMonthDescription,
   getDate,
   getYear,
   getMonth,
-} from '../helpers/helpers';
+} from '../helpers/date';
 import { YEARS, MONTHS } from '../constants/constants';
 import {
   InputLabel,
   MenuItem,
-  FormHelperText,
   FormControl,
   Select,
 } from '@material-ui/core';
 
-export default function FilterSelector({ setSelectedDate, selectedDate }) {
-  const handleChangeMonth = (event) => {
-    setSelectedDate(getDate(getYear(selectedDate), event.target.value));
-  };
-  const handleChangeYear = (event) => {
-    setSelectedDate(getDate(event.target.value, getMonth(selectedDate)));
-  };
 
+interface IFilterSelectorProps {
+  yearMonth: string;
+  onChangeYearMonth: (yearMonth: string) => void;
+}
+
+export default function FilterSelector(props:IFilterSelectorProps) {
+  let [year, month] = props.yearMonth ? props.yearMonth.split("-") : ['', ''];
+  
   return (
     <div>
-      <FormControl sx={{ m: 2, minWidth: 120 }}>
+      <FormControl>
+        <InputLabel>Year</InputLabel>
         <Select
-          value={getYear(selectedDate)}
-          onChange={handleChangeYear}
+          value={year}
+          onChange={(e)=>props.onChangeYearMonth(e.target.value + "-" + month)}
           displayEmpty
           label="Year"
         >
@@ -36,25 +35,23 @@ export default function FilterSelector({ setSelectedDate, selectedDate }) {
               {displayYear}
             </MenuItem>
           ))}
-        </Select>
-        <FormHelperText>Day</FormHelperText>
+        </Select> 
       </FormControl>
-      <FormControl sx={{ m: 2, minWidth: 120 }}>
+      <FormControl>
         <InputLabel id="demo-simple-select-helper-label">Month</InputLabel>
         <Select
           labelId="demo-simple-select-helper-label"
           id="demo-simple-select-helper"
-          value={getMonth(selectedDate)}
+          value={month}
           label="Month"
-          onChange={handleChangeMonth}
+          onChange={(e)=>props.onChangeYearMonth(year + "-" + e.target.value)}
         >
           {MONTHS.map((displayMonth, index) => (
             <MenuItem key={index} value={displayMonth}>
-              {helperGetMonthDescription(displayMonth)}
+              {displayMonth}
             </MenuItem>
           ))}
         </Select>
-        <FormHelperText>Month</FormHelperText>
       </FormControl>
     </div>
   );

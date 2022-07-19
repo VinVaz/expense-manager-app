@@ -1,4 +1,4 @@
-const MONTHS = [
+const MONTHS: string[] = [
   '',
   'jan',
   'fev',
@@ -14,17 +14,17 @@ const MONTHS = [
   'dez',
 ];
 
-function helperGetMonthDescription(month) {
+function helperGetMonthDescription(month: string): string {
   return MONTHS[Number(month)];
 }
 
-function getYear(date) {
+function getYear(date: string): string {
   return date.split('-')[0];
 }
-function getMonth(date) {
+function getMonth(date: string): string {
   return date.split('-')[1];
 }
-function getDate(year, month) {
+function getDate(year: string, month: string): string {
   return `${year}-${month}`;
 }
 
